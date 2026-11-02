@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Torhüter-Live-Statistik</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TW-Statistik">
+<meta name="theme-color" content="#1f5f66">
+<style>
+:root{--bg:#eef1f4;--surf:#fff;--ink:#12202e;--mut:#5d6b7a;--line:#d5dce3;--acc:#ffd23f;--ok:#1f9d55;--bad:#d64545;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1620;--surf:#16222f;--ink:#eaf0f6;--mut:#93a3b4;--line:#2a3a4b}}
+:root[data-theme="dark"]{--bg:#0d1620;--surf:#16222f;--ink:#eaf0f6;--mut:#93a3b4;--line:#2a3a4b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:'Barlow',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;padding-bottom:96px}
+.num{font-family:'Barlow Condensed','Arial Narrow',sans-serif;font-weight:700}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:16px}
+.btn{min-height:64px;border-radius:14px;border:2px solid var(--line);background:var(--surf);font-weight:600;font-size:1.15rem;transition:transform .08s}
+.btn:active,.chip:active{transform:scale(.96)}
+.btn.on{border-color:var(--acc);background:var(--acc);color:#12202e}
+.chip{border:2px solid var(--line);border-radius:12px;padding:6px 8px;text-align:left;background:var(--surf);min-height:52px;font-size:.78rem;line-height:1.2;color:var(--mut)}
+.chip b{display:block;font-size:.92rem;color:var(--ink)}
+.chip.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.gc{text-shadow:0 1px 2px rgba(0,0,0,.45);min-height:92px;border:1px dashed rgba(255,255,255,.5);color:#fff;font-weight:600;font-size:1.05rem;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.gc.sel{background:var(--acc);color:#12202e;text-shadow:none}.gc:active{background:rgba(255,255,255,.25)}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%}
+.badge{color:#fff;font-weight:600;font-size:.85rem;border-radius:8px;padding:2px 9px}
+.del{min-height:48px;padding:0 14px;border-radius:12px;border:2px solid var(--line);font-weight:600}.del.arm{background:var(--bad);border-color:var(--bad);color:#fff}
+.inp{min-height:52px;width:100%;padding:0 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);user-select:text;-webkit-user-select:text;font-size:1.05rem}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--surf);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;z-index:20}
+nav button{flex:1;height:64px;font-weight:600;font-size:.9rem;color:var(--mut)}nav button.on{background:var(--acc);color:#12202e}
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:50}#flash.go{animation:fl .4s ease-out}
+@keyframes fl{0%{opacity:.6}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#flash.go{animation-duration:.01s}.btn,.chip{transition:none}}
+*,::before,::after{box-sizing:border-box}html{line-height:1.5;-webkit-text-size-adjust:100%}body{margin:0}p,h3,ul,li{margin:0;padding:0}ul{list-style:none}button{background:transparent;color:inherit;font:inherit;border:0;padding:0;cursor:pointer}input{font:inherit}svg{display:block}
+.flex{display:flex}.grid{display:grid}.flex-1{flex:1 1 0%}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}
+.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}
+.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.max-w-3xl{max-width:48rem}.max-w-md{max-width:28rem}.mx-auto{margin-left:auto;margin-right:auto}.w-full{width:100%}
+.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}
+.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.pb-2{padding-bottom:.5rem}.pt-3{padding-top:.75rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}
+.rounded-2xl{border-radius:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-center{text-align:center}.text-right{text-align:right}
+@media (min-width:768px){.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.md\:col-span-2{grid-column:span 2/span 2}.md\:max-w-5xl{max-width:64rem}}
+</style></head>
+<body>
+<div id="flash"></div><div id="app"></div><nav id="nav"></nav>
+<script>
+const K='hb-keeper-v1',KH='hb-history-v1';
+const PN={al:'Linksaußen (LA)',hl6:'Kreis Links (KL)',m6:'Kreis Mitte (KM)',hr6:'Kreis Rechts (KR)',ar:'Rechtsaußen (RA)',hl9:'Rückraum Links (RL)',m9:'Rückraum Mitte (RM)',hr9:'Rückraum Rechts (RR)',tg:'Tempogegenstoß','7m':'7-m-Wurf'};
+const PS={al:'LA',hl6:'KL',m6:'KM',hr6:'KR',ar:'RA',hl9:'RL',m9:'RM',hr9:'RR',tg:'Tempogegenstoß (TG)','7m':'7 m'};
+const PC={al:[46,40],hl6:[105,95],m6:[220,130],hr6:[335,95],ar:[394,40],hl9:[87,157],m9:[220,190],hr9:[353,157],tg:[240,380],'7m':[70,380]};
+const ZN={ol:'Oben links',om:'Oben Mitte',or:'Oben rechts',ml:'Mitte links',mm:'Mitte',mr:'Mitte rechts',ul:'Unten links',um:'Unten Mitte',ur:'Unten rechts',heber:'Heber',dreher:'Dreher'};
+const GRID=['ol','om','or','ml','mm','mr','ul','um','ur'];
+const grp=p=>p==='7m'?'7':p==='tg'?'tg':p.endsWith('9')?'9':'6';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const def=()=>({recs:[],k:0,names:['Torhüter 1','Torhüter 2'],gid:Date.now()});
+let pend=null,S=def(),H=[],tab='erfassen',armed=null,hp=null,vn=null,msg='',D={step:0,pos:null,nach:false,zone:null};
+try{const x=JSON.parse(localStorage.getItem(K));if(x&&Array.isArray(x.recs))S=Object.assign(def(),x)}catch(e){}
+try{H=JSON.parse(localStorage.getItem(KH))||[]}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const hsave=()=>{try{localStorage.setItem(KH,JSON.stringify(H))}catch(e){}};
+save();
+const A_=(a,f)=>{const b=a.filter(f),p=b.filter(r=>r.res==='parade').length;return{n:b.length,p,g:b.length-p,q:b.length?p/b.length:null}};
+const rk=k=>S.recs.filter(r=>(r.k||0)===k);
+const ag=(f,k=S.k)=>A_(rk(k),f);
+const pct=q=>q==null?'–':Math.round(q*100)+' %';
+const pc2=q=>q==null?'':Math.round(q*100)+'%';
+const hc=q=>q==null?'rgba(255,255,255,.2)':`hsl(${Math.round(q*120)} ${Math.round(88-28*q)}% ${Math.round(40-8*q)}%)`;
+const cell2=g=>g.n?g.p+'/'+g.n+' '+pc2(g.q):'–';
+
+function field(mode){
+ let s='<svg viewBox="0 0 440 420" class="w-full rounded-2xl" style="background:#1f5f66;font-family:Barlow,system-ui,sans-serif"><path d="M70 10A120 120 0 0 0 190 130H250A120 120 0 0 0 370 10Z" fill="#c8561f" stroke="#fff" stroke-width="3"/><path d="M10 10A180 180 0 0 0 190 190H250A180 180 0 0 0 430 10" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="10 8"/><rect x="190" y="0" width="60" height="9" fill="#fff"/><line x1="0" y1="411" x2="440" y2="411" stroke="#fff" stroke-width="4"/>';
+ for(const k in PC){
+  const [x,y]=PC[k],big=k==='tg'||k==='7m',w=k==='tg'?170:k==='7m'?100:88,a=mode==='in',g=ag(r=>r.pos===k),sel=hp===k&&!a;
+  let fill='#fff',tc='#12202e';
+  if(a){if(D.pos===k)fill='#ffd23f'}else{fill=hc(g.q);tc='#fff'}
+  s+=`<g ${a?`data-a="pos" data-v="${k}" style="cursor:pointer"`:`data-a="hp" data-v="${k}" style="cursor:pointer" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke"`}>`;
+  if(a&&!big){s+=`<circle cx="${x}" cy="${y}" r="24" fill="${fill}" stroke="#12202e" stroke-width="3"/><text x="${x}" y="${y+5}" text-anchor="middle" font-size="15" font-weight="700" fill="#12202e">${PS[k]}</text></g>`;continue}
+  if(big)s+=`<rect x="${x-w/2}" y="${y-17}" width="${w}" height="46" rx="12" fill="#0b2e33" stroke="none"/>`;
+  s+=`<rect x="${x-w/2}" y="${y-23}" width="${w}" height="46" rx="12" fill="${fill}" stroke="${sel?'#ffd23f':'#fff'}" stroke-width="${sel?5:2}"/>`;
+  s+=a?`<text x="${x}" y="${y+5}" text-anchor="middle" font-size="14" font-weight="700" fill="${tc}">${PS[k]}</text>`
+   :`<text x="${x}" y="${y-5}" text-anchor="middle" font-size="11" font-weight="600" fill="${tc}">${PS[k]}</text><text x="${x}" y="${y+13}" text-anchor="middle" font-size="13" font-weight="700" fill="${tc}">${cell2(g)}</text>`;
+  s+='</g>';
+ }
+ return s+'</svg>';
+}
+function goal(mode){
+ const a=mode==='in',G=k=>ag(r=>r.zone===k&&(!hp||r.pos===hp));
+ const cell=k=>a?`<button data-a="zone" data-v="${k}" class="gc ${D.zone===k?'sel':''}">${ZN[k]}</button>`
+  :`<div class="gc" style="background:${hc(G(k).q)};border-style:solid">${ZN[k]}<b class="num text-xl">${cell2(G(k))}</b></div>`;
+ const ex=k=>a?`<button data-a="zone" data-v="${k}" class="btn ${D.zone===k?'on':''}">${ZN[k]}</button>`
+  :`<div class="btn flex flex-col items-center justify-center" style="background:${hc(G(k).q)};color:#fff;border-color:transparent">${ZN[k]}<b class="num text-xl">${cell2(G(k))}</b></div>`;
+ const st=d=>`repeating-linear-gradient(${d}deg,#d62828 0 28px,#fff 28px 56px)`;
+ return `<div><div style="height:16px;background:${st(90)};border-radius:4px 4px 0 0"></div><div style="display:flex"><div style="width:16px;background:${st(180)}"></div><div class="grid grid-cols-3" style="flex:1;background:#1f5f66">${GRID.map(cell).join('')}</div><div style="width:16px;background:${st(180)}"></div></div></div>
+ <div class="grid grid-cols-2 gap-3 mt-3">${ex('heber')}${ex('dreher')}</div>
+ <p class="text-sm mt-2" style="color:var(--mut)">Blick vom Feld auf das Tor</p>`;
+}
+
+function sec(a,hist){
+ const g=f=>A_(a,f),q=(l,x)=>[l,`${x.p}/${x.n}, ${pct(x.q)}`,x.q||0,'ok',x.n?'bad':null];
+ let ps=Object.keys(PN).map(k=>[k,g(r=>r.pos===k)]);
+ if(hist)ps=ps.filter(p=>p[1].n).sort((x,y)=>x[1].q-y[1].q);
+ const zs=Object.keys(ZN).map(k=>[ZN[k],g(r=>r.zone===k)]).filter(z=>z[1].n).sort((x,y)=>(y[1].g/y[1].n)-(x[1].g/x[1].n)||y[1].n-x[1].n);
+ return [['Gesamt-Quote',[q('Alle Würfe aufs Tor',g(()=>1)),q('Ohne 7-m-Würfe',g(r=>r.pos!=='7m'))]],
+ ['Positions-Quoten',[q('6 m (Kreis und Außen)',g(r=>grp(r.pos)==='6')),q('9 m (Rückraum)',g(r=>grp(r.pos)==='9')),q('Tempogegenstoß',g(r=>r.pos==='tg')),q('7-m-Würfe',g(r=>r.pos==='7m'))]],
+ [hist?'Positionen, schwächste zuerst':'Quoten je Position',ps.map(([k,x],i)=>q(PN[k]+(hist&&i===0?' (am schwächsten)':''),x))],
+ ['Nachwürfe nach Abpraller',[q('Nachwürfe gehalten',g(r=>r.nach))]],
+ ['Anfälligste Tor-Zonen (Gegentore)',zs.length?zs.map(z=>[z[0],`${z[1].g} Tore bei ${z[1].n}, ${pct(z[1].g/z[1].n)}`,z[1].g/z[1].n,'bad','ok']):[['Noch keine Daten','',null]]]];
+}
+const sections=k=>sec(rk(k));
+const CM={ok:'var(--ok)',bad:'var(--bad)'};
+const secHTML=ss=>ss.map(([t,rows])=>`<section class="card p-4"><h3 class="num text-2xl mb-3">${t}</h3>${rows.map(([l,v,f,c,tr])=>f==null?`<div class="mb-2 flex justify-between"><span>${l}</span><b>${v}</b></div>`:`<div class="mb-3"><div class="flex justify-between"><span>${l}</span><b>${v}</b></div><div class="bar" style="background:${CM[tr]||'var(--line)'}"><i style="width:${Math.round(f*100)}%;background:${CM[c]}"></i></div></div>`).join('')}</section>`).join('');
+const cmp=()=>[['Alle Würfe aufs Tor',()=>1],['Ohne 7-m-Würfe',r=>r.pos!=='7m'],['6 m',r=>grp(r.pos)==='6'],['9 m',r=>grp(r.pos)==='9'],['Tempogegenstoß',r=>r.pos==='tg'],['7-m-Würfe',r=>r.pos==='7m'],['Nachwürfe',r=>r.nach],...Object.keys(PN).filter(k=>k!=='7m'&&k!=='tg').map(k=>[PN[k],r=>r.pos===k])].map(([l,f])=>[l,ag(f,0),ag(f,1)]);
+const cmpHTML=()=>`<section class="card p-4 md:col-span-2"><h3 class="num text-2xl mb-3">Gegenüberstellung</h3><div class="grid grid-cols-2 gap-4 mb-2 num text-xl"><span>${esc(S.names[0])}</span><span>${esc(S.names[1])}</span></div>${cmp().map(([l,g0,g1])=>`<div class="mb-3"><div class="text-sm" style="color:var(--mut)">${l}</div><div class="grid grid-cols-2 gap-4">${[g0,g1].map(g=>`<div><div class="flex justify-between"><b>${g.p}/${g.n}</b><span>${pct(g.q)}</span></div><div class="bar" style="background:${g.n?'var(--bad)':'var(--line)'}"><i style="width:${Math.round((g.q||0)*100)}%;background:var(--ok)"></i></div></div>`).join('')}</div></div>`).join('')}</section>`;
+
+function head(){const A=ag(()=>1);return `<header class="px-4 pt-3 pb-2 max-w-3xl mx-auto"><div class="card flex items-center justify-between gap-3 flex-wrap px-3 py-2"><div class="flex gap-2">${[0,1].map(k=>`<button class="btn ${S.k===k?'on':''}" style="min-height:52px;padding:0 14px" data-a="keeper" data-v="${k}">${esc(S.names[k])}</button>`).join('')}</div><div class="text-right"><div class="text-sm" style="color:var(--mut)">Fangquote</div><div class="num" style="font-size:36px;line-height:1">${A.p} / ${A.n} = ${pct(A.q)}</div></div></div></header>`}
+
+function erfassen(){
+ const st=D.step,ch=[['Position',D.pos&&PN[D.pos]+(D.nach?', Nachwurf':'')],['Tor-Raster',D.zone&&ZN[D.zone]],['Ergebnis',null]];
+ let h=`<div class="grid grid-cols-3 gap-2 mb-4">${ch.map((c,i)=>`<button ${i<st?`data-a="step" data-v="${i}"`:''} class="chip ${i===st?'on':''}">${c[0]}<b>${c[1]||'–'}</b></button>`).join('')}</div>`;
+ if(st===0)h+=`<button class="btn w-full flex items-center gap-4 px-4 mb-4 ${D.nach?'on':''}" style="justify-content:flex-start" data-a="nach" role="checkbox" aria-checked="${D.nach}"><span style="width:36px;height:36px;border:3px solid currentColor;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:1.6rem;line-height:1">${D.nach?'✓':''}</span>Nachwurf nach Abpraller</button><p class="num text-2xl mb-2">Von wo wurde geworfen?</p>${field('in')}`;
+ if(st===1)h+=`<p class="num text-2xl mb-2">Wohin ging der Wurf?</p>${goal('in')}`;
+ if(st===2)h+=`<p class="num text-2xl mb-2">Ergebnis</p><div class="grid grid-cols-2 gap-3"><button class="btn" style="min-height:170px;font-size:1.7rem;background:var(--bad);border-color:var(--bad);color:#fff" data-a="tor">Tor</button><button class="btn" style="min-height:170px;font-size:1.7rem;background:var(--ok);border-color:var(--ok);color:#fff" data-a="parade">Parade</button></div>`;
+ if(st>0)h+=`<button class="btn w-full mt-5" data-a="step" data-v="${st-1}">Zurück</button>`;
+ return h;
+}
+function chronik(){
+ if(!S.recs.length)return '<p class="card p-5">Noch keine Würfe erfasst. Wechsle zu „Erfassen“ und tippe die Wurfposition an.</p>';
+ const pp=[0,0],cn=[0,0],run={};
+ S.recs.forEach(r=>{const k=r.k||0;cn[k]++;if(r.res==='parade')pp[k]++;run[r.id]=pp[k]+'/'+cn[k]});
+ return `<p class="num text-2xl">Letzte Aktionen (${S.recs.length})</p><p class="text-sm mb-3" style="color:var(--mut)">Links: gehaltene Bälle / Würfe des Torhüters bis zu diesem Wurf</p><ul class="grid gap-3">${S.recs.slice().reverse().map(r=>{const t=r.res==='tor',ar=armed===r.id;
+ return `<li class="card flex items-center gap-3 p-3"><div class="num text-3xl text-center" style="width:92px">${run[r.id]}</div><div class="flex-1"><div class="flex gap-2 flex-wrap"><span class="badge" style="background:#3b5b85">${esc(S.names[r.k||0])}</span><span class="badge" style="background:${t?'var(--bad)':'var(--ok)'}">${t?'Tor':'Parade'}</span>${r.nach?'<span class="badge" style="background:#6b4fbb">Nachwurf</span>':''}</div><div class="text-sm mt-1" style="color:var(--mut)">${PN[r.pos]}, ${ZN[r.zone]}</div></div><button class="del ${ar?'arm':''}" data-a="del" data-v="${r.id}">${ar?'Sicher?':'Löschen'}</button></li>`}).join('')}</ul>`;
+}
+const legend=`<div class="mt-4 max-w-md"><div style="height:14px;border-radius:7px;background:linear-gradient(90deg,${hc(0)},${hc(.25)},${hc(.5)},${hc(.75)},${hc(1)})"></div><div class="flex justify-between text-sm" style="color:var(--mut)"><span>0 %</span><span>50 %</span><span>100 %</span></div><p class="text-sm mt-1" style="color:var(--mut)">Fangquote je Feld. Grau: noch keine Würfe.</p></div>`;
+function heat(){return `<p class="mb-3" style="color:var(--mut)">Tippe im Feld auf eine Position, um das Tor-Raster nur für diese Position zu sehen.</p><div class="grid md:grid-cols-2 gap-5"><section><p class="num text-2xl mb-2">Paraden / Würfe je Position</p>${field('heat')}</section><section><p class="num text-2xl mb-2">Tor-Raster${hp?': '+PN[hp]:''}</p>${hp?'<button class="btn w-full mb-2" style="min-height:48px" data-a="hpx">Alle Positionen anzeigen</button>':''}${goal('heat')}</section></div>${legend}`}
+function stats(){
+ return `<p class="num text-3xl mb-2">${esc(S.names[S.k])}</p><div class="grid md:grid-cols-2 gap-4">${secHTML(sections(S.k))}${cmpHTML()}</div>
+ <div class="card p-4 mt-4"><p class="num text-2xl mb-2">Namen der Torhüter</p><div class="grid grid-cols-2 gap-3">${[0,1].map(k=>`<input class="inp" id="nm${k}" value="${esc(S.names[k])}" maxlength="24">`).join('')}</div></div>
+ <div class="grid grid-cols-2 gap-3 mt-6"><button class="del ${armed==='reset'?'arm':''}" style="min-height:64px" data-a="reset">${armed==='reset'?'Wirklich alle Daten löschen?':'Neues Spiel, alle Daten löschen'}</button><button class="btn ${pend?'on':''}" id="pdfbtn" data-a="pdf">${pend?'PDF fertig: hier tippen zum Speichern':'Bericht als PDF speichern'}</button></div>`;
+}
+
+const hnames=()=>{const s=new Set();H.forEach(g=>g.r.forEach(r=>s.add(g.n[r[0]])));return [...s]};
+const unp=r=>({pos:r[1],zone:r[2],res:r[3]?'parade':'tor',nach:!!r[4]});
+const dd=d=>d.split('-').reverse().join('.');
+function verlauf(){
+ const ns=hnames(),nm=ns.includes(vn)?vn:ns[0];
+ let h=`<div class="card p-4 mb-4"><p class="num text-2xl mb-1">Berichte importieren</p><p class="mb-3" style="color:var(--mut)">Lade mehrere PDF-Berichte aus dieser App hoch. Daraus entsteht der Verlauf über die Spiele.</p><label class="btn flex items-center justify-center" style="cursor:pointer">PDF-Berichte hochladen<input id="pdfin" type="file" accept="application/pdf" multiple style="display:none"></label>${msg?`<p class="mt-2">${msg}</p>`:''}</div>`;
+ if(!H.length)return h;
+ h+=`<div class="card p-4 mb-4"><p class="num text-2xl mb-2">Importierte Spiele (${H.length})</p>${H.map(g=>`<div class="flex items-center justify-between gap-2 mb-2"><span>${dd(g.d)}, ${g.r.length} Würfe</span><button class="del ${armed==='h'+g.id?'arm':''}" data-a="hdel" data-v="${g.id}">${armed==='h'+g.id?'Sicher?':'Entfernen'}</button></div>`).join('')}</div>`;
+ h+=`<div class="flex gap-2 flex-wrap mb-4">${ns.map((n,i)=>`<button class="btn ${n===nm?'on':''}" style="min-height:52px;padding:0 16px" data-a="vn" data-v="${i}">${esc(n)}</button>`).join('')}</div>`;
+ const gm=H.map(g=>({d:g.d,a:g.r.filter(r=>g.n[r[0]]===nm).map(unp)})).filter(x=>x.a.length),all=gm.flatMap(x=>x.a);
+ const tr=(t,f)=>[t,gm.map(x=>[dd(x.d),A_(x.a,f)]).filter(x=>x[1].n).map(([d,q])=>[d,`${q.p}/${q.n}, ${pct(q.q)}`,q.q||0,'ok','bad'])];
+ return h+`<p class="num text-3xl mb-2">${esc(nm)}, ${gm.length} Spiele</p><div class="grid md:grid-cols-2 gap-4">${secHTML([tr('Verlauf Fangquote je Spiel',()=>1),tr('Verlauf 7-m-Quote je Spiel',r=>r.pos==='7m'),...sec(all,true)])}</div>`;
+}
+async function imp(files){
+ let ok=0,bad=0;
+ for(const f of files){try{const s=new TextDecoder('latin1').decode(await f.arrayBuffer()),m=s.match(/HBTW1:([A-Za-z0-9+\/=]+)/);if(!m)throw 0;const p=JSON.parse(decodeURIComponent(escape(atob(m[1]))));if(!p.r||!p.id||!p.n)throw 0;H=H.filter(g=>g.id!==p.id);H.push(p);ok++}catch(e){bad++}}
+ H.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.id-b.id);hsave();
+ msg=`${ok} Bericht(e) importiert`+(bad?`, ${bad} nicht lesbar (nur PDFs aus dieser App)`:'');render();
+}
+
+function goalSvg(){
+ let s='<svg xmlns="http://www.w3.org/2000/svg" width="660" height="560" viewBox="0 0 330 280" font-family="Helvetica,Arial,sans-serif"><rect width="330" height="280" fill="#1f5f66"/>';
+ const sp=(x,y,w,h,v)=>{let o='';const L=v?h:w;for(let i=0;i*14<L;i++){const d=Math.min(14,L-i*14);o+=`<rect x="${v?x:x+i*14}" y="${v?y+i*14:y}" width="${v?w:d}" height="${v?d:h}" fill="${i%2?'#fff':'#d62828'}"/>`}return o};
+ s+=sp(8,4,314,10,0)+sp(8,4,10,228,1)+sp(312,4,10,228,1);
+ const c=(k,x,y,w,h)=>{const g=ag(r=>r.zone===k),T=`text-anchor="middle" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width="2.5" paint-order="stroke"`;return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${hc(g.q)}" stroke="#fff" stroke-opacity=".5"/><text x="${x+w/2}" y="${y+h/2-3}" ${T} font-size="11">${ZN[k]}</text><text x="${x+w/2}" y="${y+h/2+13}" ${T} font-size="14" font-weight="700">${cell2(g)}</text>`};
+ GRID.forEach((k,i)=>{s+=c(k,18+(i%3)*98,14+Math.floor(i/3)*70,98,70)});
+ return s+c('heber',12,240,150,36)+c('dreher',168,240,150,36)+'</svg>';
+}
+const svgImg=(svg,w,h)=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#1f5f66';x.fillRect(0,0,w,h);x.drawImage(i,0,0,w,h);res(c.toDataURL('image/jpeg',.92))};i.onerror=rej;i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+const RGB={ok:[31,157,85],bad:[214,69,69]};
+function drawSecs(doc,ss,y){
+ for(const [t,rows] of ss){
+  if(y+10+rows.length*8>285){doc.addPage();y=16}
+  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(t,10,y);y+=6;
+  doc.setFont('helvetica','normal');doc.setFontSize(10);
+  for(const [l,v,f,c,tr] of rows){
+   doc.text(l,10,y);doc.text(String(v),200,y,{align:'right'});
+   if(f!=null){doc.setFillColor(...(RGB[tr]||[225,230,235]));doc.rect(10,y+1.5,190,2,'F');if(f>0){doc.setFillColor(...RGB[c]);doc.rect(10,y+1.5,190*f,2,'F')}}
+   y+=8}
+  y+=3}
+ return y;
+}
+const packData=()=>btoa(unescape(encodeURIComponent(JSON.stringify({v:1,id:S.gid,d:new Date().toLocaleDateString('sv-SE'),n:S.names,r:S.recs.map(r=>[r.k||0,r.pos,r.zone,r.res==='parade'?1:0,r.nach?1:0])}))));
+class MiniPdf{
+ constructor(){this.pg=[];this.im=[];this.info={};this.fs=10;this.b=0;this.fc='0 0 0 rg';this.addPage()}
+ addPage(){this.p={c:[],x:{}};this.pg.push(this.p)}
+ setFont(f,s){this.b=s==='bold'?1:0}
+ setFontSize(s){this.fs=s}
+ setFillColor(r,g,b){this.fc=[r,g,b].map(v=>(v/255).toFixed(3)).join(' ')+' rg'}
+ setProperties(o){Object.assign(this.info,o)}
+ static enc(s){const M={'–':0x96,'—':0x97,'’':0x92,'‘':0x91,'“':0x93,'”':0x94,'„':0x84,'…':0x85,'€':0x80};let o='';for(const ch of String(s)){let c=M[ch]??ch.charCodeAt(0);if(c>255)c=63;const x=String.fromCharCode(c);o+=(x==='\\'||x==='('||x===')')?'\\'+x:x}return o}
+ tw(s){const c=MiniPdf.cv||(MiniPdf.cv=document.createElement('canvas').getContext('2d'));c.font=`${this.b?'bold ':''}${this.fs}px Helvetica,Arial,sans-serif`;return c.measureText(s).width}
+ text(s,x,y,o){const k=2.834646;let X=x*k;if(o&&o.align==='right')X-=this.tw(String(s));this.p.c.push(`0 0 0 rg BT /F${this.b?2:1} ${this.fs} Tf ${X.toFixed(2)} ${((297-y)*k).toFixed(2)} Td (${MiniPdf.enc(s)}) Tj ET`)}
+ rect(x,y,w,h){const k=2.834646;this.p.c.push(`${this.fc} ${(x*k).toFixed(2)} ${((297-y-h)*k).toFixed(2)} ${(w*k).toFixed(2)} ${(h*k).toFixed(2)} re f`)}
+ addImage(d,t,x,y,w,h){const bin=atob(d.split(',')[1]),k=2.834646;let i=2,W=0,H=0;
+  while(i<bin.length){if(bin.charCodeAt(i)!==255)break;const m=bin.charCodeAt(i+1);if(m>=0xC0&&m<=0xC3){H=bin.charCodeAt(i+5)*256+bin.charCodeAt(i+6);W=bin.charCodeAt(i+7)*256+bin.charCodeAt(i+8);break}i+=2+bin.charCodeAt(i+2)*256+bin.charCodeAt(i+3)}
+  const n=this.im.push({bin,W,H})-1,nm='Im'+n;this.p.x[nm]=n;
+  this.p.c.push(`q ${(w*k).toFixed(2)} 0 0 ${(h*k).toFixed(2)} ${(x*k).toFixed(2)} ${((297-y-h)*k).toFixed(2)} cm /${nm} Do Q`)}
+ output(){const o=[],B=this.im.length,base=6+B,np=this.pg.length,P=(n,s)=>{o[n]=`${n} 0 obj\n${s}\nendobj\n`};
+  P(1,'<</Type/Catalog/Pages 2 0 R>>');
+  P(2,`<</Type/Pages/Kids[${this.pg.map((_,i)=>(base+2*i+1)+' 0 R').join(' ')}]/Count ${np}>>`);
+  P(3,'<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>');
+  P(4,'<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>');
+  P(5,`<</Producer(Torwart-Statistik)${Object.entries(this.info).map(([k,v])=>`/${k[0].toUpperCase()+k.slice(1)}(${MiniPdf.enc(v)})`).join('')}>>`);
+  this.im.forEach((m,i)=>P(6+i,`<</Type/XObject/Subtype/Image/Width ${m.W}/Height ${m.H}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${m.bin.length}>>\nstream\n${m.bin}\nendstream`));
+  this.pg.forEach((p,i)=>{const c=p.c.join('\n');P(base+2*i,`<</Length ${c.length}>>\nstream\n${c}\nendstream`);P(base+2*i+1,`<</Type/Page/Parent 2 0 R/MediaBox[0 0 595.28 841.89]/Resources<</Font<</F1 3 0 R/F2 4 0 R>>/XObject<<${Object.entries(p.x).map(([k,n])=>`/${k} ${6+n} 0 R`).join('')}>>>>/Contents ${base+2*i} 0 R>>`)});
+  let s='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';const off=[];
+  for(let n=1;n<o.length;n++){off[n]=s.length;s+=o[n]}
+  const x=s.length;s+=`xref\n0 ${o.length}\n0000000000 65535 f \n`+off.slice(1).map(v=>String(v).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<</Size ${o.length}/Root 1 0 R/Info 5 0 R>>\nstartxref\n${x}\n%%EOF`;
+  const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new Blob([u],{type:'application/pdf'})}
+}
+
+async function saveFile(name,blob){
+ const f=new File([blob],name,{type:'application/pdf'});
+ if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:name});return}catch(e){if(e&&e.name==='AbortError')throw e}}
+ const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
+}
+async function makePdf(){
+ const b=document.getElementById('pdfbtn'),t0=b.textContent,k0=S.k,h0=hp;
+ try{
+  b.textContent='PDF wird erstellt …';
+  const doc=new MiniPdf();
+  hp=null;
+  for(let k=0;k<2;k++){
+   S.k=k;if(k)doc.addPage();
+   const T=ag(()=>1),fi=await svgImg(field('heat').replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="880" height="840" '),880,840),gi=await svgImg(goalSvg(),660,560);
+   doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(`Torhüter-Statistik: ${S.names[k]}`,10,16);
+   doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Fangquote ${T.p}/${T.n} = ${pct(T.q)}, ${new Date().toLocaleDateString('de-DE')}`,10,22);
+   doc.setFontSize(11);doc.text('Heatmap Halbfeld',10,32);doc.text('Heatmap Tor-Raster',108,32);
+   doc.addImage(fi,'JPEG',10,35,92,88);doc.addImage(gi,'JPEG',108,35,92,78);
+   doc.setFontSize(8);doc.text('Angabe: Paraden/Würfe und Quote. Farbe: rot = niedrige Quote, gelb = ca. 50 %, grün = 100 %.',10,128);
+   drawSecs(doc,sections(k),138);
+  }
+  doc.addPage();doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('Gegenüberstellung',10,16);
+  doc.setFontSize(11);doc.text(S.names[0],70,26);doc.text(S.names[1],140,26);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  let y=34;
+  for(const [l,g0,g1] of cmp()){
+   doc.text(l,10,y);
+   [g0,g1].forEach((g,c)=>{const x=70+c*70;doc.text(`${g.p}/${g.n} ${pc2(g.q)}`,x,y);doc.setFillColor(...(g.n?RGB.bad:[225,230,235]));doc.rect(x,y+1.5,60,2,'F');if(g.q>0){doc.setFillColor(...RGB.ok);doc.rect(x,y+1.5,60*g.q,2,'F')}});
+   y+=9}
+  doc.setProperties({keywords:'HBTW1:'+packData()});
+  pend={name:`torwart-statistik-${new Date().toLocaleDateString('sv-SE')}.pdf`,blob:doc.output('blob')};
+ }catch(e){
+  b.textContent=e&&e.code==='declined'?t0:'PDF nicht verfügbar';
+  setTimeout(()=>{b.textContent=t0},2500)
+ }finally{S.k=k0;hp=h0}
+ if(pend)render();
+}
+
+const TABS=[['erfassen','Erfassen'],['chronik','Chronologie'],['heat','Heatmaps'],['stats','Kurzansicht'],['verlauf','Verlauf']];
+function render(){
+ const v={erfassen,chronik,heat,stats,verlauf}[tab]();
+ document.getElementById('app').innerHTML=head()+`<main class="px-4 max-w-3xl mx-auto ${tab==='heat'||tab==='stats'||tab==='verlauf'?'md:max-w-5xl':''}">${v}</main>`;
+ document.getElementById('nav').innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+}
+function fb(res){
+ try{navigator.vibrate&&navigator.vibrate(res==='tor'?[70,40,70]:35)}catch(e){}
+ const f=document.getElementById('flash');f.style.background=res==='tor'?'#d64545':'#1f9d55';f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+}
+function commit(res){
+ S.recs.push({id:Date.now(),k:S.k,pos:D.pos,zone:D.zone,res,nach:D.nach&&D.pos!=='7m'});save();fb(res);
+ D={step:0,pos:null,nach:false,zone:null};
+}
+function arm(id){armed=id;setTimeout(()=>{if(armed===id){armed=null;render()}},3000)}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-a]');if(!t)return;
+ const a=t.dataset.a,v=t.dataset.v;
+ if(a==='tab')tab=v;
+ else if(a==='keeper'){S.k=+v;save()}
+ else if(a==='step')D.step=+v;
+ else if(a==='pos'){D.pos=v;if(v==='7m')D.nach=false;D.step=1}
+ else if(a==='nach')D.nach=!D.nach;
+ else if(a==='zone'){D.zone=v;D.step=2}
+ else if(a==='tor')commit('tor');
+ else if(a==='parade')commit('parade');
+ else if(a==='hp')hp=hp===v?null:v;
+ else if(a==='hpx')hp=null;
+ else if(a==='vn')vn=hnames()[+v];
+ else if(a==='del'){if(armed===+v){S.recs=S.recs.filter(r=>r.id!==+v);armed=null;save()}else arm(+v)}
+ else if(a==='hdel'){if(armed==='h'+v){H=H.filter(g=>String(g.id)!==v);armed=null;hsave()}else arm('h'+v)}
+ else if(a==='pdf'){if(pend){const p=pend;saveFile(p.name,p.blob).then(()=>{pend=null;render()}).catch(()=>{})}else makePdf();return}
+ else if(a==='reset'){if(armed==='reset'){S=Object.assign(def(),{names:S.names});D={step:0,pos:null,nach:false,zone:null};armed=null;save()}else arm('reset')}
+ render();
+});
+document.addEventListener('change',e=>{
+ const t=e.target;
+ if(t.id==='pdfin')imp(t.files);
+ else if(/^nm[01]$/.test(t.id)){S.names[+t.id[2]]=t.value.trim()||'Torhüter '+(+t.id[2]+1);save();render()}
+});
+render();
+try{navigator.serviceWorker&&navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+</script></body></html>

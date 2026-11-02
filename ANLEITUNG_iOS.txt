@@ -1,0 +1,105 @@
+TORHÜTER-STATISTIK: OFFLINE-VERSION FÜR iPHONE UND iPAD
+========================================================
+
+WARUM DIESER UMWEG?
+iOS kann eine heruntergeladene HTML-Datei nicht als App öffnen. Die App muss
+deshalb EINMALIG im Internet abgelegt werden (kostenlos). Danach wird sie auf
+dem Gerät gespeichert und läuft ohne Internet, auch in der Halle ohne Empfang.
+
+Dieser Ordner enthält alles dafür:
+  index.html, sw.js, manifest.webmanifest, icon-180.png, icon-192.png, icon-512.png
+Alle sechs Dateien müssen zusammen hochgeladen werden.
+
+
+TEIL 1: EINMALIG HOCHLADEN (am PC, ca. 5 Minuten)
+-------------------------------------------------
+1. Auf github.com ein kostenloses Konto anlegen (falls noch keins vorhanden).
+2. Oben rechts auf "+" und "New repository" klicken.
+3. Name eingeben, z. B. "torwart", Haken bei "Public" lassen, auf
+   "Create repository" klicken.
+4. Auf "uploading an existing file" klicken, die sechs Dateien aus dem
+   entpackten ZIP hineinziehen und unten auf "Commit changes" klicken.
+5. Oben auf "Settings", links auf "Pages".
+6. Bei "Branch" den Eintrag "main" wählen, daneben "/ (root)", dann "Save".
+7. Nach 1 bis 2 Minuten erscheint oben die Adresse, ungefähr so:
+   https://DEINNAME.github.io/torwart/
+   Diese Adresse ist der Link zur App. Du kannst ihn an alle Mitspieler
+   und Trainer schicken.
+
+Hinweis: Die Seite ist dann öffentlich erreichbar. Es liegen aber keine
+Spieldaten darauf, nur die leere App. Die Daten bleiben auf jedem Gerät.
+
+
+TEIL 2: AUF DEM iPHONE ODER iPAD INSTALLIEREN
+---------------------------------------------
+Wichtig: Dafür muss das Gerät einmal Internet haben.
+
+1. In SAFARI (nicht in einer anderen App) den Link öffnen.
+2. Die Seite einmal komplett laden lassen.
+3. Unten (iPhone) bzw. oben (iPad) auf das Teilen-Symbol tippen
+   (Quadrat mit Pfeil nach oben).
+4. Nach unten scrollen und "Zum Home-Bildschirm" wählen.
+5. Name bestätigen ("TW-Statistik") und "Hinzufügen" tippen.
+6. Ab jetzt die App über das Icon auf dem Home-Bildschirm starten,
+   nicht mehr über Safari.
+
+
+TEIL 3: OFFLINE TESTEN (bitte vor dem ersten Spiel!)
+----------------------------------------------------
+1. App über das Home-Bildschirm-Icon einmal starten (mit Internet).
+2. Flugmodus einschalten.
+3. App schließen und erneut über das Icon öffnen.
+4. Wenn die App normal startet und sich bedienen lässt, ist alles fertig.
+
+
+SO WIRD SIE IM SPIEL BENUTZT
+----------------------------
+- Oben den Torhüter wählen. Position antippen, Tor-Feld antippen, Tor oder Parade.
+- Nachwurf-Häkchen VOR der Position setzen. Bei 7 m gibt es kein Häkchen.
+- Falsche Eingaben in der Chronologie löschen (zweimal tippen).
+
+
+NACH DEM SPIEL: BERICHT SICHERN (wichtig!)
+------------------------------------------
+1. Reiter "Kurzansicht" öffnen.
+2. Unten auf "Bericht als PDF speichern" tippen. Die App erstellt das PDF.
+3. Der Knopf zeigt dann "PDF fertig: hier tippen zum Speichern". Tippen.
+4. Im Menü "In Dateien sichern" wählen (oder per AirDrop, Mail, WhatsApp teilen).
+5. Im Reiter "Verlauf" können später mehrere dieser PDFs hochgeladen werden.
+   Daraus entsteht der Verlauf über alle Spiele.
+
+Das PDF ist gleichzeitig deine Datensicherung.
+
+
+WICHTIG ZU DEN DATEN
+--------------------
+- Alle Würfe liegen nur auf dem Gerät, auf dem sie erfasst wurden. iPhone und
+  iPad tauschen nichts untereinander aus. Ein Spiel deshalb von Anfang bis Ende
+  auf EINEM Gerät erfassen.
+- Die App auf dem Home-Bildschirm und Safari haben getrennte Speicher.
+  Immer dieselbe Variante benutzen (empfohlen: Home-Bildschirm-Icon).
+- Das Icon vom Home-Bildschirm zu löschen löscht auch die gespeicherten Daten.
+  Vorher den PDF-Bericht sichern.
+- Im privaten Safari-Modus werden Daten nicht gespeichert.
+- Die Vibration beim Speichern funktioniert auf iPhone/iPad nicht (Einschränkung
+  von Apple). Das Aufblinken funktioniert.
+
+
+UPDATE EINSPIELEN
+-----------------
+Wenn es eine neue Version gibt: die Dateien im GitHub-Repository ersetzen
+(Datei anklicken, Stift-Symbol oder "Add file" > "Upload files").
+Auf dem Gerät die App dann einmal MIT Internet öffnen und danach
+komplett schließen und neu starten. Danach ist die neue Version aktiv.
+
+
+ALTERNATIVEN ZU GITHUB PAGES
+----------------------------
+Netlify oder Cloudflare Pages funktionieren genauso. Ordner mit den sechs Dateien
+hochladen, Link in Safari öffnen, weiter mit Teil 2.
+
+
+ANDROID UND PC
+--------------
+Hier kannst du index.html auch direkt per Doppelklick im Browser öffnen. Alles
+funktioniert ohne Internet. Der Bericht wird als PDF heruntergeladen.
