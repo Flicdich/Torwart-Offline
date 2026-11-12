@@ -54,9 +54,20 @@ TEIL 3: OFFLINE TESTEN (bitte vor dem ersten Spiel!)
 
 SO WIRD SIE IM SPIEL BENUTZT
 ----------------------------
-- Oben den Torhüter wählen. Position antippen, Tor-Feld antippen, Tor oder Parade.
-- Nachwurf-Häkchen VOR der Position setzen. Bei 7 m gibt es kein Häkchen.
-- Falsche Eingaben in der Chronologie löschen (zweimal tippen).
+- Beim ersten Start und bei jedem neuen Spiel fragt ein großes Fenster nach dem
+  Namen des Goalkeepers. Danach kommt die Frage, ob ein weiterer hinzugefügt
+  werden soll (bis zu 4). Bei "Nein" geht es direkt los.
+- Oben hat jeder Goalkeeper seinen eigenen Reiter. Mit "Keeper bearbeiten" kannst
+  du Namen ändern, Goalkeeper löschen (zweimal tippen) oder mit "add Keeper"
+  einen neuen hinzufügen.
+- Position antippen, Tor-Feld antippen, Tor oder Parade. Das Nachwurf-Häkchen
+  VOR der Position setzen. Bei 7 m gibt es kein Häkchen.
+- Rückgängig (Pfeil oben im Reiter "Erfassen"): löscht die letzte gespeicherte
+  Aktion komplett. Daneben steht, welcher Eintrag das ist.
+- Falsche ältere Eingaben in der Chronologie löschen (zweimal tippen).
+- In der Kurzansicht gibt es ein Notizfeld. Die Notizen kommen ins PDF.
+- Im Verlauf zählen Goalkeeper mit demselben Namen als eine Person. Schreibe die
+  Namen deshalb immer gleich (die App schlägt bisherige Namen zum Antippen vor).
 
 
 NACH DEM SPIEL: BERICHT SICHERN (wichtig!)
@@ -85,12 +96,28 @@ WICHTIG ZU DEN DATEN
   von Apple). Das Aufblinken funktioniert.
 
 
-UPDATE EINSPIELEN
------------------
-Wenn es eine neue Version gibt: die Dateien im GitHub-Repository ersetzen
-(Datei anklicken, Stift-Symbol oder "Add file" > "Upload files").
-Auf dem Gerät die App dann einmal MIT Internet öffnen und danach
-komplett schließen und neu starten. Danach ist die neue Version aktiv.
+UPDATE EINSPIELEN (Dateien auf GitHub ersetzen, NICHT von vorne anfangen)
+------------------------------------------------------------------------
+Am PC:
+1. Neues ZIP entpacken.
+2. Auf github.com dein Repository öffnen (z. B. "torwart").
+3. Oben auf "Add file" und "Upload files" klicken.
+4. Alle Dateien aus dem entpackten Ordner hineinziehen. Gleiche Dateinamen
+   werden dabei überschrieben.
+5. Unten auf "Commit changes" klicken.
+6. 1 bis 2 Minuten warten, bis GitHub Pages fertig ist.
+Der Link bleibt derselbe. Konto, Repository und Pages-Einstellung müssen nicht
+neu angelegt werden.
+
+Auf iPhone und iPad:
+1. Gerät mit Internet verbinden.
+2. App über das Home-Bildschirm-Icon öffnen, dann komplett schließen
+   (App-Umschalter, nach oben wischen).
+3. App nochmal öffnen, wieder schließen und ein drittes Mal öffnen.
+   Spätestens dann ist die neue Version aktiv.
+4. Zum Test: Oben muss der Knopf "Keeper bearbeiten" sichtbar sein.
+Die gespeicherten Würfe und Verläufe bleiben dabei erhalten. Der Home-Bildschirm-
+Link muss NICHT neu angelegt werden.
 
 
 ALTERNATIVEN ZU GITHUB PAGES

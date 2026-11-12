@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Torhüter-Live-Statistik</title>
+<title>Goalkeeper-Live-Statistik</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -55,9 +55,10 @@ const ZN={ol:'Oben links',om:'Oben Mitte',or:'Oben rechts',ml:'Mitte links',mm:'
 const GRID=['ol','om','or','ml','mm','mr','ul','um','ur'];
 const grp=p=>p==='7m'?'7':p==='tg'?'tg':p.endsWith('9')?'9':'6';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const def=()=>({recs:[],k:0,names:['Torhüter 1','Torhüter 2'],gid:Date.now()});
-let pend=null,S=def(),H=[],tab='erfassen',armed=null,hp=null,vn=null,msg='',D={step:0,pos:null,nach:false,zone:null};
-try{const x=JSON.parse(localStorage.getItem(K));if(x&&Array.isArray(x.recs))S=Object.assign(def(),x)}catch(e){}
+const def=()=>({recs:[],gk:[],k:null,nid:0,gid:Date.now(),note:'',hist:[]});
+let pend=null,S=def(),H=[],tab='erfassen',armed=null,hp=null,vn=null,msg='',W=null,E=null,D={step:0,pos:null,nach:false,zone:null};
+try{const x=JSON.parse(localStorage.getItem(K));if(x&&Array.isArray(x.recs)){S=Object.assign(def(),x);if(!Array.isArray(x.gk)){S.gk=[];if(Array.isArray(x.names)&&x.recs.length){S.gk=x.names.map((n,i)=>({id:i,name:n}));S.k=x.k||0;S.nid=S.gk.length}}}}catch(e){}
+const nm=id=>(S.gk.find(g=>g.id===id)||{name:'?'}).name;
 try{H=JSON.parse(localStorage.getItem(KH))||[]}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
 const hsave=()=>{try{localStorage.setItem(KH,JSON.stringify(H))}catch(e){}};
@@ -112,14 +113,15 @@ function sec(a,hist){
 const sections=k=>sec(rk(k));
 const CM={ok:'var(--ok)',bad:'var(--bad)'};
 const secHTML=ss=>ss.map(([t,rows])=>`<section class="card p-4"><h3 class="num text-2xl mb-3">${t}</h3>${rows.map(([l,v,f,c,tr])=>f==null?`<div class="mb-2 flex justify-between"><span>${l}</span><b>${v}</b></div>`:`<div class="mb-3"><div class="flex justify-between"><span>${l}</span><b>${v}</b></div><div class="bar" style="background:${CM[tr]||'var(--line)'}"><i style="width:${Math.round(f*100)}%;background:${CM[c]}"></i></div></div>`).join('')}</section>`).join('');
-const cmp=()=>[['Alle Würfe aufs Tor',()=>1],['Ohne 7-m-Würfe',r=>r.pos!=='7m'],['6 m',r=>grp(r.pos)==='6'],['9 m',r=>grp(r.pos)==='9'],['Tempogegenstoß',r=>r.pos==='tg'],['7-m-Würfe',r=>r.pos==='7m'],['Nachwürfe',r=>r.nach],...Object.keys(PN).filter(k=>k!=='7m'&&k!=='tg').map(k=>[PN[k],r=>r.pos===k])].map(([l,f])=>[l,ag(f,0),ag(f,1)]);
-const cmpHTML=()=>`<section class="card p-4 md:col-span-2"><h3 class="num text-2xl mb-3">Gegenüberstellung</h3><div class="grid grid-cols-2 gap-4 mb-2 num text-xl"><span>${esc(S.names[0])}</span><span>${esc(S.names[1])}</span></div>${cmp().map(([l,g0,g1])=>`<div class="mb-3"><div class="text-sm" style="color:var(--mut)">${l}</div><div class="grid grid-cols-2 gap-4">${[g0,g1].map(g=>`<div><div class="flex justify-between"><b>${g.p}/${g.n}</b><span>${pct(g.q)}</span></div><div class="bar" style="background:${g.n?'var(--bad)':'var(--line)'}"><i style="width:${Math.round((g.q||0)*100)}%;background:var(--ok)"></i></div></div>`).join('')}</div></div>`).join('')}</section>`;
+const cmp=()=>[['Alle Würfe aufs Tor',()=>1],['Ohne 7-m-Würfe',r=>r.pos!=='7m'],['6 m',r=>grp(r.pos)==='6'],['9 m',r=>grp(r.pos)==='9'],['Tempogegenstoß',r=>r.pos==='tg'],['7-m-Würfe',r=>r.pos==='7m'],['Nachwürfe',r=>r.nach],...Object.keys(PN).filter(k=>k!=='7m'&&k!=='tg').map(k=>[PN[k],r=>r.pos===k])].map(([l,f])=>[l,...S.gk.map(g=>ag(f,g.id))]);
+const cmpHTML=()=>{const cols=`style="grid-template-columns:repeat(${S.gk.length},minmax(0,1fr))"`;return S.gk.length<2?'':`<section class="card p-4 md:col-span-2"><h3 class="num text-2xl mb-3">Gegenüberstellung</h3><div class="grid gap-3 mb-2 num text-xl" ${cols}>${S.gk.map(g=>`<span>${esc(g.name)}</span>`).join('')}</div>${cmp().map(([l,...gs])=>`<div class="mb-3"><div class="text-sm" style="color:var(--mut)">${l}</div><div class="grid gap-3" ${cols}>${gs.map(g=>`<div><div class="flex justify-between text-sm"><b>${g.p}/${g.n}</b><span>${pct(g.q)}</span></div><div class="bar" style="background:${g.n?'var(--bad)':'var(--line)'}"><i style="width:${Math.round((g.q||0)*100)}%;background:var(--ok)"></i></div></div>`).join('')}</div></div>`).join('')}</section>`};
 
-function head(){const A=ag(()=>1);return `<header class="px-4 pt-3 pb-2 max-w-3xl mx-auto"><div class="card flex items-center justify-between gap-3 flex-wrap px-3 py-2"><div class="flex gap-2">${[0,1].map(k=>`<button class="btn ${S.k===k?'on':''}" style="min-height:52px;padding:0 14px" data-a="keeper" data-v="${k}">${esc(S.names[k])}</button>`).join('')}</div><div class="text-right"><div class="text-sm" style="color:var(--mut)">Fangquote</div><div class="num" style="font-size:36px;line-height:1">${A.p} / ${A.n} = ${pct(A.q)}</div></div></div></header>`}
+function head(){const A=S.k==null?{p:0,n:0,q:null}:ag(()=>1);return `<header class="px-4 pt-3 pb-2 max-w-3xl mx-auto"><div class="card px-3 py-2"><div class="flex items-center justify-between gap-3 flex-wrap"><div class="flex gap-2 flex-wrap">${S.gk.map(g=>`<button class="btn ${S.k===g.id?'on':''}" style="min-height:52px;padding:0 14px" data-a="keeper" data-v="${g.id}">${esc(g.name)}</button>`).join('')}<button class="btn" style="min-height:52px;padding:0 14px;font-size:1rem" data-a="kedit">✎ Keeper bearbeiten</button></div><div class="text-right"><div class="text-sm" style="color:var(--mut)">Fangquote</div><div class="num" style="font-size:36px;line-height:1">${A.p} / ${A.n} = ${pct(A.q)}</div></div></div></div></header>`}
 
 function erfassen(){
  const st=D.step,ch=[['Position',D.pos&&PN[D.pos]+(D.nach?', Nachwurf':'')],['Tor-Raster',D.zone&&ZN[D.zone]],['Ergebnis',null]];
- let h=`<div class="grid grid-cols-3 gap-2 mb-4">${ch.map((c,i)=>`<button ${i<st?`data-a="step" data-v="${i}"`:''} class="chip ${i===st?'on':''}">${c[0]}<b>${c[1]||'–'}</b></button>`).join('')}</div>`;
+ const L=S.recs[S.recs.length-1];
+ let h=`<div class="flex items-center gap-3 mb-3"><button class="btn" style="min-height:52px;padding:0 16px;${L?'':'opacity:.4'}" data-a="undo" ${L?'':'disabled'} aria-label="Rückgängig">↶ Rückgängig</button><span class="text-sm" style="color:var(--mut)">${L?`Letzter Eintrag: ${esc(nm(L.k||0))}, ${PS[L.pos]}, ${L.res==='tor'?'Tor':'Parade'}`:'Noch kein Eintrag'}</span></div><div class="grid grid-cols-3 gap-2 mb-4">${ch.map((c,i)=>`<button ${i<st?`data-a="step" data-v="${i}"`:''} class="chip ${i===st?'on':''}">${c[0]}<b>${c[1]||'–'}</b></button>`).join('')}</div>`;
  if(st===0)h+=`<button class="btn w-full flex items-center gap-4 px-4 mb-4 ${D.nach?'on':''}" style="justify-content:flex-start" data-a="nach" role="checkbox" aria-checked="${D.nach}"><span style="width:36px;height:36px;border:3px solid currentColor;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:1.6rem;line-height:1">${D.nach?'✓':''}</span>Nachwurf nach Abpraller</button><p class="num text-2xl mb-2">Von wo wurde geworfen?</p>${field('in')}`;
  if(st===1)h+=`<p class="num text-2xl mb-2">Wohin ging der Wurf?</p>${goal('in')}`;
  if(st===2)h+=`<p class="num text-2xl mb-2">Ergebnis</p><div class="grid grid-cols-2 gap-3"><button class="btn" style="min-height:170px;font-size:1.7rem;background:var(--bad);border-color:var(--bad);color:#fff" data-a="tor">Tor</button><button class="btn" style="min-height:170px;font-size:1.7rem;background:var(--ok);border-color:var(--ok);color:#fff" data-a="parade">Parade</button></div>`;
@@ -128,16 +130,16 @@ function erfassen(){
 }
 function chronik(){
  if(!S.recs.length)return '<p class="card p-5">Noch keine Würfe erfasst. Wechsle zu „Erfassen“ und tippe die Wurfposition an.</p>';
- const pp=[0,0],cn=[0,0],run={};
- S.recs.forEach(r=>{const k=r.k||0;cn[k]++;if(r.res==='parade')pp[k]++;run[r.id]=pp[k]+'/'+cn[k]});
- return `<p class="num text-2xl">Letzte Aktionen (${S.recs.length})</p><p class="text-sm mb-3" style="color:var(--mut)">Links: gehaltene Bälle / Würfe des Torhüters bis zu diesem Wurf</p><ul class="grid gap-3">${S.recs.slice().reverse().map(r=>{const t=r.res==='tor',ar=armed===r.id;
- return `<li class="card flex items-center gap-3 p-3"><div class="num text-3xl text-center" style="width:92px">${run[r.id]}</div><div class="flex-1"><div class="flex gap-2 flex-wrap"><span class="badge" style="background:#3b5b85">${esc(S.names[r.k||0])}</span><span class="badge" style="background:${t?'var(--bad)':'var(--ok)'}">${t?'Tor':'Parade'}</span>${r.nach?'<span class="badge" style="background:#6b4fbb">Nachwurf</span>':''}</div><div class="text-sm mt-1" style="color:var(--mut)">${PN[r.pos]}, ${ZN[r.zone]}</div></div><button class="del ${ar?'arm':''}" data-a="del" data-v="${r.id}">${ar?'Sicher?':'Löschen'}</button></li>`}).join('')}</ul>`;
+ const pp={},cn={},run={};
+ S.recs.forEach(r=>{const k=r.k||0;cn[k]=(cn[k]||0)+1;if(r.res==='parade')pp[k]=(pp[k]||0)+1;run[r.id]=(pp[k]||0)+'/'+cn[k]});
+ return `<p class="num text-2xl">Letzte Aktionen (${S.recs.length})</p><p class="text-sm mb-3" style="color:var(--mut)">Links: gehaltene Bälle / Würfe des Goalkeepers bis zu diesem Wurf</p><ul class="grid gap-3">${S.recs.slice().reverse().map(r=>{const t=r.res==='tor',ar=armed===r.id;
+ return `<li class="card flex items-center gap-3 p-3"><div class="num text-3xl text-center" style="width:92px">${run[r.id]}</div><div class="flex-1"><div class="flex gap-2 flex-wrap"><span class="badge" style="background:#3b5b85">${esc(nm(r.k||0))}</span><span class="badge" style="background:${t?'var(--bad)':'var(--ok)'}">${t?'Tor':'Parade'}</span>${r.nach?'<span class="badge" style="background:#6b4fbb">Nachwurf</span>':''}</div><div class="text-sm mt-1" style="color:var(--mut)">${PN[r.pos]}, ${ZN[r.zone]}</div></div><button class="del ${ar?'arm':''}" data-a="del" data-v="${r.id}">${ar?'Sicher?':'Löschen'}</button></li>`}).join('')}</ul>`;
 }
 const legend=`<div class="mt-4 max-w-md"><div style="height:14px;border-radius:7px;background:linear-gradient(90deg,${hc(0)},${hc(.25)},${hc(.5)},${hc(.75)},${hc(1)})"></div><div class="flex justify-between text-sm" style="color:var(--mut)"><span>0 %</span><span>50 %</span><span>100 %</span></div><p class="text-sm mt-1" style="color:var(--mut)">Fangquote je Feld. Grau: noch keine Würfe.</p></div>`;
 function heat(){return `<p class="mb-3" style="color:var(--mut)">Tippe im Feld auf eine Position, um das Tor-Raster nur für diese Position zu sehen.</p><div class="grid md:grid-cols-2 gap-5"><section><p class="num text-2xl mb-2">Paraden / Würfe je Position</p>${field('heat')}</section><section><p class="num text-2xl mb-2">Tor-Raster${hp?': '+PN[hp]:''}</p>${hp?'<button class="btn w-full mb-2" style="min-height:48px" data-a="hpx">Alle Positionen anzeigen</button>':''}${goal('heat')}</section></div>${legend}`}
 function stats(){
- return `<p class="num text-3xl mb-2">${esc(S.names[S.k])}</p><div class="grid md:grid-cols-2 gap-4">${secHTML(sections(S.k))}${cmpHTML()}</div>
- <div class="card p-4 mt-4"><p class="num text-2xl mb-2">Namen der Torhüter</p><div class="grid grid-cols-2 gap-3">${[0,1].map(k=>`<input class="inp" id="nm${k}" value="${esc(S.names[k])}" maxlength="24">`).join('')}</div></div>
+ return `<p class="num text-3xl mb-2">${esc(nm(S.k))}</p><div class="grid md:grid-cols-2 gap-4">${secHTML(sections(S.k))}${cmpHTML()}</div>
+ <div class="card p-4 mt-4"><p class="num text-2xl mb-2">Notizen zum Spiel</p><textarea id="note" class="inp" style="min-height:160px;padding:12px;resize:vertical" placeholder="Gedanken und Kommentare zum Spiel, zum Gegner …">${esc(S.note||'')}</textarea><p class="text-sm mt-1" style="color:var(--mut)">Die Notizen erscheinen im PDF-Bericht.</p></div>
  <div class="grid grid-cols-2 gap-3 mt-6"><button class="del ${armed==='reset'?'arm':''}" style="min-height:64px" data-a="reset">${armed==='reset'?'Wirklich alle Daten löschen?':'Neues Spiel, alle Daten löschen'}</button><button class="btn ${pend?'on':''}" id="pdfbtn" data-a="pdf">${pend?'PDF fertig: hier tippen zum Speichern':'Bericht als PDF speichern'}</button></div>`;
 }
 
@@ -183,7 +185,7 @@ function drawSecs(doc,ss,y){
   y+=3}
  return y;
 }
-const packData=()=>btoa(unescape(encodeURIComponent(JSON.stringify({v:1,id:S.gid,d:new Date().toLocaleDateString('sv-SE'),n:S.names,r:S.recs.map(r=>[r.k||0,r.pos,r.zone,r.res==='parade'?1:0,r.nach?1:0])}))));
+const packData=()=>btoa(unescape(encodeURIComponent(JSON.stringify({v:1,id:S.gid,d:new Date().toLocaleDateString('sv-SE'),n:S.gk.map(g=>g.name),r:S.recs.map(r=>[S.gk.findIndex(g=>g.id===(r.k||0)),r.pos,r.zone,r.res==='parade'?1:0,r.nach?1:0]).filter(r=>r[0]>=0)}))));
 class MiniPdf{
  constructor(){this.pg=[];this.im=[];this.info={};this.fs=10;this.b=0;this.fc='0 0 0 rg';this.addPage()}
  addPage(){this.p={c:[],x:{}};this.pg.push(this.p)}
@@ -192,6 +194,7 @@ class MiniPdf{
  setFillColor(r,g,b){this.fc=[r,g,b].map(v=>(v/255).toFixed(3)).join(' ')+' rg'}
  setProperties(o){Object.assign(this.info,o)}
  static enc(s){const M={'–':0x96,'—':0x97,'’':0x92,'‘':0x91,'“':0x93,'”':0x94,'„':0x84,'…':0x85,'€':0x80};let o='';for(const ch of String(s)){let c=M[ch]??ch.charCodeAt(0);if(c>255)c=63;const x=String.fromCharCode(c);o+=(x==='\\'||x==='('||x===')')?'\\'+x:x}return o}
+ wrap(s,wmm){const lim=wmm*2.834646,out=[];String(s).split('\n').forEach(par=>{let ln='';par.split(' ').forEach(w=>{const t=ln?ln+' '+w:w;if(ln&&this.tw(t)>lim){out.push(ln);ln=w}else ln=t});out.push(ln)});return out}
  tw(s){const c=MiniPdf.cv||(MiniPdf.cv=document.createElement('canvas').getContext('2d'));c.font=`${this.b?'bold ':''}${this.fs}px Helvetica,Arial,sans-serif`;return c.measureText(s).width}
  text(s,x,y,o){const k=2.834646;let X=x*k;if(o&&o.align==='right')X-=this.tw(String(s));this.p.c.push(`0 0 0 rg BT /F${this.b?2:1} ${this.fs} Tf ${X.toFixed(2)} ${((297-y)*k).toFixed(2)} Td (${MiniPdf.enc(s)}) Tj ET`)}
  rect(x,y,w,h){const k=2.834646;this.p.c.push(`${this.fc} ${(x*k).toFixed(2)} ${((297-y-h)*k).toFixed(2)} ${(w*k).toFixed(2)} ${(h*k).toFixed(2)} re f`)}
@@ -224,24 +227,31 @@ async function makePdf(){
   b.textContent='PDF wird erstellt …';
   const doc=new MiniPdf();
   hp=null;
-  for(let k=0;k<2;k++){
-   S.k=k;if(k)doc.addPage();
+  for(let i=0;i<S.gk.length;i++){
+   const g=S.gk[i];S.k=g.id;if(i)doc.addPage();
    const T=ag(()=>1),fi=await svgImg(field('heat').replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="880" height="840" '),880,840),gi=await svgImg(goalSvg(),660,560);
-   doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(`Torhüter-Statistik: ${S.names[k]}`,10,16);
+   doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(`Goalkeeper-Statistik: ${g.name}`,10,16);
    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(`Fangquote ${T.p}/${T.n} = ${pct(T.q)}, ${new Date().toLocaleDateString('de-DE')}`,10,22);
    doc.setFontSize(11);doc.text('Heatmap Halbfeld',10,32);doc.text('Heatmap Tor-Raster',108,32);
    doc.addImage(fi,'JPEG',10,35,92,88);doc.addImage(gi,'JPEG',108,35,92,78);
    doc.setFontSize(8);doc.text('Angabe: Paraden/Würfe und Quote. Farbe: rot = niedrige Quote, gelb = ca. 50 %, grün = 100 %.',10,128);
-   drawSecs(doc,sections(k),138);
+   drawSecs(doc,sections(g.id),138);
   }
-  doc.addPage();doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('Gegenüberstellung',10,16);
-  doc.setFontSize(11);doc.text(S.names[0],70,26);doc.text(S.names[1],140,26);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);
-  let y=34;
-  for(const [l,g0,g1] of cmp()){
-   doc.text(l,10,y);
-   [g0,g1].forEach((g,c)=>{const x=70+c*70;doc.text(`${g.p}/${g.n} ${pc2(g.q)}`,x,y);doc.setFillColor(...(g.n?RGB.bad:[225,230,235]));doc.rect(x,y+1.5,60,2,'F');if(g.q>0){doc.setFillColor(...RGB.ok);doc.rect(x,y+1.5,60*g.q,2,'F')}});
-   y+=9}
+  if(S.gk.length>1){
+   doc.addPage();doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('Gegenüberstellung',10,16);
+   const n=S.gk.length,cw=138/n;doc.setFontSize(9);
+   S.gk.forEach((g,c)=>doc.text(g.name.slice(0,Math.floor(cw/1.8)),62+c*cw,26));
+   doc.setFont('helvetica','normal');doc.setFontSize(8);let y=34;
+   for(const [l,...gs] of cmp()){
+    doc.text(l,10,y);
+    gs.forEach((g,c)=>{const x=62+c*cw,bw=cw-4;doc.text(`${g.p}/${g.n} ${pc2(g.q)}`,x,y);doc.setFillColor(...(g.n?RGB.bad:[225,230,235]));doc.rect(x,y+1.5,bw,2,'F');if(g.q>0){doc.setFillColor(...RGB.ok);doc.rect(x,y+1.5,bw*g.q,2,'F')}});
+    y+=9}
+  }
+  if((S.note||'').trim()){
+   doc.addPage();doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('Notizen',10,16);
+   doc.setFont('helvetica','normal');doc.setFontSize(11);let y=26;
+   for(const ln of doc.wrap(S.note,190)){if(y>285){doc.addPage();doc.setFont('helvetica','normal');doc.setFontSize(11);y=16}doc.text(ln,10,y);y+=6}
+  }
   doc.setProperties({keywords:'HBTW1:'+packData()});
   pend={name:`torwart-statistik-${new Date().toLocaleDateString('sv-SE')}.pdf`,blob:doc.output('blob')};
  }catch(e){
@@ -252,10 +262,22 @@ async function makePdf(){
 }
 
 const TABS=[['erfassen','Erfassen'],['chronik','Chronologie'],['heat','Heatmaps'],['stats','Kurzansicht'],['verlauf','Verlauf']];
+const sugs=()=>S.hist.filter(x=>!S.gk.some(g=>g.name===x)).slice(0,6);
+function addK(name){name=String(name).trim().slice(0,24);if(!name)return;const id=S.nid++;S.gk.push({id,name});S.hist=[name,...S.hist.filter(x=>x!==name)].slice(0,12);if(S.k==null)S.k=id;save();W=S.gk.length>=4?null:{mode:'more'}}
+function modal(){
+ const ov=c=>`<div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto"><div class="card p-5 w-full" style="max-width:560px;max-height:100%;overflow:auto">${c}</div></div>`,n=S.gk.length;
+ if(W&&W.mode==='name'){const sg=sugs();return ov(`<p class="text-sm" style="color:var(--mut)">${n?'Goalkeeper hinzufügen':'Neues Spiel'}</p><p class="num" style="font-size:2.2rem;line-height:1.1">Name von Goalkeeper ${n+1}?</p><input id="wn" class="inp mt-4" style="min-height:64px;font-size:1.4rem" maxlength="24" placeholder="Name" autocomplete="off">${sg.length?`<p class="text-sm mt-4 mb-2" style="color:var(--mut)">Bisherige Goalkeeper:</p><div class="flex flex-wrap gap-2">${sg.map((x,i)=>`<button class="btn" style="min-height:52px;padding:0 14px" data-a="wsug" data-v="${i}">${esc(x)}</button>`).join('')}</div>`:''}<div class="grid grid-cols-2 gap-3 mt-5">${n?'<button class="btn" data-a="wcancel">Abbrechen</button>':'<span></span>'}<button class="btn on" data-a="wnext">Weiter</button></div>`)}
+ if(W)return ov(`<p class="num" style="font-size:2.2rem;line-height:1.1">${esc(S.gk[n-1].name)} ist angelegt.</p><p class="mt-2 mb-5" style="font-size:1.2rem">Weiteren Goalkeeper hinzufügen? (${n} von 4)</p><div class="grid grid-cols-2 gap-3"><button class="btn" style="min-height:90px" data-a="wmore">Ja, weiterer Goalkeeper</button><button class="btn on" style="min-height:90px" data-a="wdone">Nein, los geht's</button></div>`);
+ if(E)return ov(`<p class="num text-3xl mb-3">Goalkeeper bearbeiten</p>${S.gk.map(g=>E.ren===g.id?`<div class="mb-3"><input id="rn" class="inp" maxlength="24" value="${esc(g.name)}"><div class="grid grid-cols-2 gap-3 mt-2"><button class="btn" style="min-height:52px" data-a="rcancel">Abbrechen</button><button class="btn on" style="min-height:52px" data-a="rsave" data-v="${g.id}">Speichern</button></div></div>`:`<div class="flex items-center gap-2 mb-3 flex-wrap"><b class="num text-2xl flex-1">${esc(g.name)}</b><button class="btn" style="min-height:52px;padding:0 14px;font-size:1rem" data-a="rname" data-v="${g.id}">Namen ändern</button><button class="del ${armed==='k'+g.id?'arm':''}" style="min-height:52px" data-a="kdel" data-v="${g.id}">${armed==='k'+g.id?'Sicher? Würfe werden gelöscht':'Löschen'}</button></div>`).join('')}${n<4?'<button class="btn w-full mt-2" data-a="kadd">+ add Keeper</button>':'<p class="text-sm mt-2" style="color:var(--mut)">Maximal 4 Goalkeeper.</p>'}<button class="btn w-full mt-4" data-a="kclose">Fertig</button>`);
+ return '';
+}
 function render(){
+ if(!S.gk.some(g=>g.id===S.k))S.k=S.gk.length?S.gk[0].id:null;
+ if(!S.gk.length&&!W)W={mode:'name'};
  const v={erfassen,chronik,heat,stats,verlauf}[tab]();
- document.getElementById('app').innerHTML=head()+`<main class="px-4 max-w-3xl mx-auto ${tab==='heat'||tab==='stats'||tab==='verlauf'?'md:max-w-5xl':''}">${v}</main>`;
+ document.getElementById('app').innerHTML=head()+`<main class="px-4 max-w-3xl mx-auto ${tab==='heat'||tab==='stats'||tab==='verlauf'?'md:max-w-5xl':''}">${v}</main>`+modal();
  document.getElementById('nav').innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+ const f=W&&W.mode==='name'?'wn':E&&E.ren!=null?'rn':null;if(f)setTimeout(()=>{const i=document.getElementById(f);i&&i.focus()},60);
 }
 function fb(res){
  try{navigator.vibrate&&navigator.vibrate(res==='tor'?[70,40,70]:35)}catch(e){}
@@ -266,11 +288,10 @@ function commit(res){
  D={step:0,pos:null,nach:false,zone:null};
 }
 function arm(id){armed=id;setTimeout(()=>{if(armed===id){armed=null;render()}},3000)}
-document.addEventListener('click',e=>{
- const t=e.target.closest('[data-a]');if(!t)return;
- const a=t.dataset.a,v=t.dataset.v;
+function act(a,v){
  if(a==='tab')tab=v;
  else if(a==='keeper'){S.k=+v;save()}
+ else if(a==='undo'){S.recs.pop();save()}
  else if(a==='step')D.step=+v;
  else if(a==='pos'){D.pos=v;if(v==='7m')D.nach=false;D.step=1}
  else if(a==='nach')D.nach=!D.nach;
@@ -283,14 +304,24 @@ document.addEventListener('click',e=>{
  else if(a==='del'){if(armed===+v){S.recs=S.recs.filter(r=>r.id!==+v);armed=null;save()}else arm(+v)}
  else if(a==='hdel'){if(armed==='h'+v){H=H.filter(g=>String(g.id)!==v);armed=null;hsave()}else arm('h'+v)}
  else if(a==='pdf'){if(pend){const p=pend;saveFile(p.name,p.blob).then(()=>{pend=null;render()}).catch(()=>{})}else makePdf();return}
- else if(a==='reset'){if(armed==='reset'){S=Object.assign(def(),{names:S.names});D={step:0,pos:null,nach:false,zone:null};armed=null;save()}else arm('reset')}
+ else if(a==='reset'){if(armed==='reset'){S=Object.assign(def(),{hist:S.hist});D={step:0,pos:null,nach:false,zone:null};armed=null;E=null;W={mode:'name'};save()}else arm('reset')}
+ else if(a==='wnext'){const i=document.getElementById('wn');if(!i||!i.value.trim())return;addK(i.value)}
+ else if(a==='wsug')addK(sugs()[+v])
+ else if(a==='wmore')W={mode:'name'};
+ else if(a==='wdone'||a==='wcancel')W=null;
+ else if(a==='kedit')E={ren:null};
+ else if(a==='kclose')E=null;
+ else if(a==='kadd'){E=null;W={mode:'name'}}
+ else if(a==='rname')E={ren:+v};
+ else if(a==='rcancel')E={ren:null};
+ else if(a==='rsave'){const i=document.getElementById('rn'),n=i&&i.value.trim().slice(0,24);if(!n)return;S.gk.find(g=>g.id===+v).name=n;S.hist=[n,...S.hist.filter(x=>x!==n)].slice(0,12);E={ren:null};save()}
+ else if(a==='kdel'){if(armed==='k'+v){S.gk=S.gk.filter(g=>g.id!==+v);S.recs=S.recs.filter(r=>(r.k||0)!==+v);armed=null;if(!S.gk.length)E=null;save()}else arm('k'+v)}
  render();
-});
-document.addEventListener('change',e=>{
- const t=e.target;
- if(t.id==='pdfin')imp(t.files);
- else if(/^nm[01]$/.test(t.id)){S.names[+t.id[2]]=t.value.trim()||'Torhüter '+(+t.id[2]+1);save();render()}
-});
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(t)act(t.dataset.a,t.dataset.v)});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='wn')act('wnext');else if(e.target.id==='rn'&&E)act('rsave',String(E.ren))});
+document.addEventListener('input',e=>{if(e.target.id==='note'){S.note=e.target.value;save()}});
+document.addEventListener('change',e=>{if(e.target.id==='pdfin')imp(e.target.files)});
 render();
 try{navigator.serviceWorker&&navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 </script></body></html>
